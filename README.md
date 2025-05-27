@@ -41,8 +41,7 @@ npm run dev
 ```
 
 - ## Sample Credentials (Mocked)
-
-  ```bash
+```bash
   Username: admin@example.com
   Password: password123
 ```
