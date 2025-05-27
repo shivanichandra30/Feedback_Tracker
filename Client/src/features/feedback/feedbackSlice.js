@@ -5,22 +5,17 @@ import {
   createSelector,
 } from "@reduxjs/toolkit";
 
-// Utility functions
-const loadFromLocalStorage = () => {
-  const data = localStorage.getItem("feedbackItems");
-  return data ? JSON.parse(data) : [];
-};
-
-const saveToLocalStorage = (items) => {
-  localStorage.setItem("feedbackItems", JSON.stringify(items));
-};
+import {
+  saveFeedbackItems,
+  loadFeedbackItems,
+} from "../../services/localStorage";
 
 // Simulate API delay
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
 // Initial state
 const initialState = {
-  items: loadFromLocalStorage(),
+  items: loadFeedbackItems(),
   status: "idle",
   error: null,
 };
@@ -90,7 +85,7 @@ const feedbackSlice = createSlice({
           archived: false,
           priority: action.payload.priority || "normal",
         });
-        saveToLocalStorage(state.items);
+        saveFeedbackItems(state.items);
         state.status = "succeeded";
       })
       .addCase(addFeedback.rejected, (state, action) => {
@@ -120,7 +115,7 @@ const feedbackSlice = createSlice({
               state.items[index].priority ||
               "normal",
           };
-          saveToLocalStorage(state.items);
+          saveFeedbackItems(state.items);
         }
         state.status = "succeeded";
       })
@@ -135,7 +130,7 @@ const feedbackSlice = createSlice({
       })
       .addCase(deleteFeedback.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
-        saveToLocalStorage(state.items);
+        saveFeedbackItems(state.items);
         state.status = "succeeded";
       })
       .addCase(deleteFeedback.rejected, (state, action) => {
@@ -143,7 +138,7 @@ const feedbackSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Archive Feedback (multiple)
+      // Archive Feedback
       .addCase(archiveFeedback.pending, (state) => {
         state.status = "loading";
       })
@@ -152,7 +147,7 @@ const feedbackSlice = createSlice({
         state.items = state.items.map((item) =>
           idsToArchive.includes(item.id) ? { ...item, archived: true } : item
         );
-        saveToLocalStorage(state.items);
+        saveFeedbackItems(state.items);
         state.status = "succeeded";
       })
       .addCase(archiveFeedback.rejected, (state, action) => {
@@ -160,7 +155,7 @@ const feedbackSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Unarchive Feedback (multiple)
+      // Unarchive Feedback
       .addCase(unarchiveFeedback.pending, (state) => {
         state.status = "loading";
       })
@@ -169,7 +164,7 @@ const feedbackSlice = createSlice({
         state.items = state.items.map((item) =>
           idsToUnarchive.includes(item.id) ? { ...item, archived: false } : item
         );
-        saveToLocalStorage(state.items);
+        saveFeedbackItems(state.items);
         state.status = "succeeded";
       })
       .addCase(unarchiveFeedback.rejected, (state, action) => {
