@@ -35,7 +35,7 @@ Clone the repository and run the app locally:
 
 ```bash
 git clone https://github.com/shivanichandra30/feedback-dashboard.git
-cd feedback-dashboard
+cd Client
 npm install
 npm run dev
 ```
