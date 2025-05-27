@@ -29,7 +29,20 @@ A modern SaaS-style feedback tracker built with **React + Vite**, powered by **R
 - Dark mode toggle  
 - Toast notifications  
 
-## 🧑‍💻 Getting Started
+## Overview
+---
+The app uses React for UI rendering and Redux Toolkit to manage global state including authentication status and feedback items. Feedback data is persisted in local storage to survive page reloads.
+
+All CRUD operations on feedback are handled asynchronously with simulated delays to mimic API calls. The sliding drawer component provides an intuitive way to add or edit feedback without navigating away from the main view.
+
+Local storage utilities are abstracted to centralize persistence logic. The UI is built with Tailwind CSS for fast styling and responsiveness, including support for dark mode.
+
+Toast notifications inform users of success or failure actions, while loading states improve perceived responsiveness.
+
+Overall, the project demonstrates a clean separation of concerns, scalable state management, and a polished UI/UX suitable for SaaS-style dashboards.
+
+---
+## Getting Started
 
 Clone the repository and run the app locally:
 
