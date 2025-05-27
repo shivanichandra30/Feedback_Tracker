@@ -1,10 +1,9 @@
 // src/features/auth/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
-
-const userKey = "loggedUser";
+import { loadUser, saveUser, clearUser } from "../../services/localStorage";
 
 const initialState = {
-  user: JSON.parse(localStorage.getItem(userKey)) || null,
+  user: loadUser(),
 };
 
 const authSlice = createSlice({
@@ -13,11 +12,11 @@ const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       state.user = action.payload;
-      localStorage.setItem(userKey, JSON.stringify(action.payload));
+      saveUser(action.payload);
     },
     logout: (state) => {
       state.user = null;
-      localStorage.removeItem(userKey);
+      clearUser();
     },
   },
 });
