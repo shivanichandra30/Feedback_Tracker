@@ -34,7 +34,7 @@ A modern SaaS-style feedback tracker built with **React + Vite**, powered by **R
 Clone the repository and run the app locally:
 
 ```bash
-git clone https://github.com/<your-username>/feedback-dashboard.git
+git clone https://github.com/shivanichandra30/feedback-dashboard.git
 cd feedback-dashboard
 npm install
 npm run dev
