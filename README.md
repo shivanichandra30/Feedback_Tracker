@@ -33,15 +33,15 @@ A modern SaaS-style feedback tracker built with **React + Vite**, powered by **R
 ---
 This project simulates a full-fledged feedback management system without a backend. Here's how the solution is structured:
 
-Authentication: The authSlice.js manages user authentication states. It uses localStorage to persist the user's login state, mimicking a JWT-based authentication system.
+- **Authentication**: The authSlice.js manages user authentication states. It uses localStorage to persist the user's login state, mimicking a JWT-based authentication system.
 
-Feedback Management: The feedbackSlice.js handles all operations related to feedback items, including adding, editing, deleting, and archiving. Feedback data is stored in localStorage to persist across sessions.
+- **Feedback Management**: The feedbackSlice.js handles all operations related to feedback items, including adding, editing, deleting, and archiving. Feedback data is stored in localStorage to persist across sessions.
 
-UI Components: Components like Drawer.jsx and FeedbackList.jsx provide a responsive and user-friendly interface. The sliding drawer interface allows users to add or edit feedback seamlessly.
+- **UI Components**: Components like Drawer.jsx and FeedbackList.jsx provide a responsive and user-friendly interface. The sliding drawer interface allows users to add or edit feedback seamlessly.
 
-State Management: Redux Toolkit is used for state management, providing a predictable state container and simplifying the logic for handling asynchronous actions.
+- **State Management**: Redux Toolkit is used for state management, providing a predictable state container and simplifying the logic for handling asynchronous actions.
 
-Styling: TailwindCSS is utilized for styling, enabling rapid development of a responsive and modern UI.
+- **Styling**: TailwindCSS is utilized for styling, enabling rapid development of a responsive and modern UI.
 
 ---
 ## Getting Started
