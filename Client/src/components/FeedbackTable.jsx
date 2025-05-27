@@ -1,11 +1,10 @@
-// src/components/FeedbackTable.jsx
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteFeedback,
   archiveFeedback,
   unarchiveFeedback,
 } from "../features/feedback/feedbackSlice";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import Spinner from "./Spinner";
 import Modal from "./Modal";
@@ -14,19 +13,17 @@ export default function FeedbackTable({ data, onEdit }) {
   const dispatch = useDispatch();
   const status = useSelector((state) => state.feedback.status);
 
-  const [sortBy, setSortBy] = useState(null); // "title" or "message" or "priority"
-  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+  const [sortBy, setSortBy] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
-  const [viewFeedback, setViewFeedback] = useState(null); // For modal view
+  const [multiSelectMode, setMultiSelectMode] = useState(false); // << NEW
+  const [viewFeedback, setViewFeedback] = useState(null);
 
-  // New filter states
-  const [filterType, setFilterType] = useState("all"); // all or specific type
-  const [filterPriority, setFilterPriority] = useState("all"); // all or specific priority
+  const [filterType, setFilterType] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
 
-  // Get unique types and priorities from data for dropdown options
   const uniqueTypes = useMemo(() => {
     const types = new Set();
     data.forEach((item) => {
@@ -43,7 +40,6 @@ export default function FeedbackTable({ data, onEdit }) {
     return Array.from(priorities);
   }, [data]);
 
-  // Filter data by archived status, search term, type filter and priority filter
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const matchesArchived = showArchived ? item.archived : !item.archived;
@@ -62,7 +58,6 @@ export default function FeedbackTable({ data, onEdit }) {
     });
   }, [data, showArchived, searchTerm, filterType, filterPriority]);
 
-  // Sort filtered data (handle priority sorting)
   const sortedData = useMemo(() => {
     if (!sortBy) return filteredData;
 
@@ -70,7 +65,6 @@ export default function FeedbackTable({ data, onEdit }) {
       let valA = a[sortBy];
       let valB = b[sortBy];
 
-      // For priority, you might want a custom order (e.g. High > Medium > Low)
       if (sortBy === "priority") {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
         valA = priorityOrder[valA?.toLowerCase()] || 0;
@@ -96,17 +90,9 @@ export default function FeedbackTable({ data, onEdit }) {
     }
   };
 
-  const onSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const onFilterTypeChange = (e) => {
-    setFilterType(e.target.value);
-  };
-
-  const onFilterPriorityChange = (e) => {
-    setFilterPriority(e.target.value);
-  };
+  const onSearchChange = (e) => setSearchTerm(e.target.value);
+  const onFilterTypeChange = (e) => setFilterType(e.target.value);
+  const onFilterPriorityChange = (e) => setFilterPriority(e.target.value);
 
   const toggleSelect = (id) => {
     if (selectedIds.includes(id)) {
@@ -124,10 +110,7 @@ export default function FeedbackTable({ data, onEdit }) {
     }
   };
 
-  const clearSelection = () => {
-    setSelectedIds([]);
-    setMultiSelectMode(false);
-  };
+  const clearSelection = () => setSelectedIds([]);
 
   const archiveSelected = () => {
     if (selectedIds.length === 0) return;
@@ -135,6 +118,7 @@ export default function FeedbackTable({ data, onEdit }) {
       dispatch(archiveFeedback(selectedIds));
       toast.success("Selected feedback archived");
       clearSelection();
+      setMultiSelectMode(false);
     }
   };
 
@@ -144,6 +128,7 @@ export default function FeedbackTable({ data, onEdit }) {
       dispatch(unarchiveFeedback(selectedIds));
       toast.success("Selected feedback unarchived");
       clearSelection();
+      setMultiSelectMode(false);
     }
   };
 
@@ -153,6 +138,7 @@ export default function FeedbackTable({ data, onEdit }) {
       selectedIds.forEach((id) => dispatch(deleteFeedback(id)));
       toast.success("Selected feedback deleted");
       clearSelection();
+      setMultiSelectMode(false);
     }
   };
 
@@ -175,20 +161,30 @@ export default function FeedbackTable({ data, onEdit }) {
     setSelectedIds((prev) => prev.filter((sid) => sid !== item.id));
   };
 
-  useEffect(() => {
-    setMultiSelectMode(selectedIds.length > 0);
-  }, [selectedIds]);
-
   const handleRowClick = (e, item) => {
-    if (
-      e.target.tagName === "BUTTON" ||
-      e.target.tagName === "INPUT" ||
-      e.target.closest("button") ||
-      e.target.closest("input")
-    ) {
-      return;
+    if (multiSelectMode) {
+      // Toggle selection on row click in select mode
+      if (
+        e.target.tagName === "BUTTON" ||
+        e.target.tagName === "INPUT" ||
+        e.target.closest("button") ||
+        e.target.closest("input")
+      ) {
+        return;
+      }
+      toggleSelect(item.id);
+    } else {
+      // Normal mode: open modal on row click (unless button or input clicked)
+      if (
+        e.target.tagName === "BUTTON" ||
+        e.target.tagName === "INPUT" ||
+        e.target.closest("button") ||
+        e.target.closest("input")
+      ) {
+        return;
+      }
+      setViewFeedback(item);
     }
-    setViewFeedback(item);
   };
 
   if (status === "loading") {
@@ -214,7 +210,6 @@ export default function FeedbackTable({ data, onEdit }) {
             {showArchived ? "Show Active" : "Show Archived"}
           </button>
 
-          {/* Filter by Type */}
           <select
             value={filterType}
             onChange={onFilterTypeChange}
@@ -229,7 +224,6 @@ export default function FeedbackTable({ data, onEdit }) {
             ))}
           </select>
 
-          {/* Filter by Priority */}
           <select
             value={filterPriority}
             onChange={onFilterPriorityChange}
@@ -245,7 +239,27 @@ export default function FeedbackTable({ data, onEdit }) {
           </select>
         </div>
 
-        {multiSelectMode && (
+        {/* Toggle multi-select mode button */}
+        <div>
+          <button
+            onClick={() => {
+              if (multiSelectMode) {
+                clearSelection();
+              }
+              setMultiSelectMode((prev) => !prev);
+            }}
+            className={`px-3 py-1 rounded ${
+              multiSelectMode
+                ? "bg-red-600 hover:bg-red-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            {multiSelectMode ? "Cancel Selection" : "Select Feedback"}
+          </button>
+        </div>
+
+        {/* Bulk action buttons - only show if in multiSelectMode and have selected items */}
+        {multiSelectMode && selectedIds.length > 0 && (
           <div className="flex items-center gap-2">
             <button
               onClick={archiveSelected}
@@ -265,21 +279,16 @@ export default function FeedbackTable({ data, onEdit }) {
             >
               Delete Selected
             </button>
-            <button
-              onClick={clearSelection}
-              className="px-3 py-1 bg-gray-400 rounded hover:bg-gray-500"
-            >
-              Cancel
-            </button>
           </div>
         )}
       </div>
 
-      {/* Feedback Table */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse rounded-lg overflow-hidden shadow-lg">
           <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white dark:from-gray-700 dark:to-gray-900">
             <tr>
+              {/* Show checkbox column only if multiSelectMode */}
               {multiSelectMode && (
                 <th className="px-4 py-3 text-center">
                   <input
@@ -294,133 +303,138 @@ export default function FeedbackTable({ data, onEdit }) {
                   />
                 </th>
               )}
+
               {["Title", "Message", "Priority", "Type", "Actions"].map(
                 (header) => (
                   <th
                     key={header}
                     className={`px-6 py-3 text-left font-semibold text-sm uppercase tracking-wider cursor-pointer select-none
-              text-white-700 dark:text-gray-300
-              ${
-                (header === "Title" && sortBy === "title") ||
-                (header === "Message" && sortBy === "message") ||
-                (header === "Priority" && sortBy === "priority")
-                  ? "underline underline-offset-4"
-                  : ""
-              }
-            `}
+              text-white`}
                     onClick={() => {
-                      if (header === "Title") handleSort("title");
-                      else if (header === "Message") handleSort("message");
-                      else if (header === "Priority") handleSort("priority");
+                      if (header !== "Actions") {
+                        handleSort(header.toLowerCase());
+                      }
                     }}
-                    title={`Sort by ${header.toLowerCase()}`}
+                    aria-sort={
+                      sortBy === header.toLowerCase()
+                        ? sortOrder === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                    role="columnheader"
                   >
-                    {header}
-                    {sortBy === header.toLowerCase()
-                      ? sortOrder === "asc"
-                        ? " ▲"
-                        : " ▼"
-                      : ""}
+                    <div className="flex items-center gap-1">
+                      {header}
+                      {sortBy === header.toLowerCase() && (
+                        <span>{sortOrder === "asc" ? "▲" : "▼"}</span>
+                      )}
+                    </div>
                   </th>
                 )
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-            {sortedData.length === 0 ? (
+          <tbody>
+            {sortedData.length === 0 && (
               <tr>
                 <td
                   colSpan={multiSelectMode ? 6 : 5}
-                  className="text-center py-6 text-gray-400 italic dark:text-gray-500"
+                  className="text-center py-8 text-gray-500 dark:text-gray-400"
                 >
                   No feedback found.
                 </td>
               </tr>
-            ) : (
-              sortedData.map((item) => (
-                <tr
-                  key={item.id}
-                  className={`cursor-pointer transition duration-300 ease-in-out
-            ${
-              selectedIds.includes(item.id)
-                ? "bg-indigo-100 dark:bg-indigo-900"
-                : "hover:bg-indigo-50 dark:hover:bg-indigo-900/50"
-            }
-            text-gray-900 dark:text-gray-100
-          `}
-                  onClick={(e) => handleRowClick(e, item)}
-                >
-                  {multiSelectMode && (
-                    <td className="px-4 py-3 text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(item.id)}
-                        onChange={() => toggleSelect(item.id)}
-                        onClick={(e) => e.stopPropagation()}
-                        aria-label={`Select feedback titled ${item.title}`}
-                        className="form-checkbox h-5 w-5 text-indigo-600 dark:text-indigo-400"
-                      />
-                    </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-normal max-w-xs truncate">
-                    {item.title}
-                  </td>
-                  <td className="px-6 py-4 whitespace-normal max-w-lg truncate">
-                    {item.message}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-indigo-700 dark:text-indigo-400">
-                    {item.priority}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                    {item.type}
-                  </td>
-                  <td className="px-6 py-4 flex space-x-2 justify-center">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(item);
-                      }}
-                      className="px-3 py-1 rounded bg-indigo-500 text-white text-sm hover:bg-indigo-600 transition"
-                      aria-label={`Edit feedback titled ${item.title}`}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleArchive(item);
-                      }}
-                      className={`px-3 py-1 rounded text-white text-sm transition ${
-                        item.archived
-                          ? "bg-green-500 hover:bg-green-600"
-                          : "bg-yellow-500 hover:bg-yellow-600"
-                      }`}
-                      aria-label={
-                        item.archived
-                          ? `Unarchive feedback titled ${item.title}`
-                          : `Archive feedback titled ${item.title}`
-                      }
-                    >
-                      {item.archived ? "Unarchive" : "Archive"}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(item.id);
-                      }}
-                      className="px-3 py-1 rounded bg-red-600 text-white text-sm hover:bg-red-700 transition"
-                      aria-label={`Delete feedback titled ${item.title}`}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
             )}
+            {sortedData.map((item) => (
+              <tr
+                key={item.id}
+                className={`border-t border-gray-200 dark:border-gray-700 cursor-pointer
+              ${
+                selectedIds.includes(item.id)
+                  ? "bg-indigo-100 dark:bg-indigo-900"
+                  : ""
+              }`}
+                onClick={(e) => handleRowClick(e, item)}
+              >
+                {/* Checkbox column only if multiSelectMode */}
+                {multiSelectMode && (
+                  <td className="text-center px-4 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(item.id)}
+                      onChange={() => toggleSelect(item.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Select feedback titled ${item.title}`}
+                      className="form-checkbox h-5 w-5 text-indigo-600 dark:text-indigo-400"
+                    />
+                  </td>
+                )}
+
+                <td className="px-6 py-3 max-w-xs truncate" title={item.title}>
+                  {item.title}
+                </td>
+                <td
+                  className="px-6 py-3 max-w-sm truncate"
+                  title={item.message}
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  {item.message}
+                </td>
+                <td className="px-6 py-3">
+                  {item.priority
+                    ? item.priority.charAt(0).toUpperCase() +
+                      item.priority.slice(1)
+                    : "-"}
+                </td>
+                <td className="px-6 py-3">{item.type || "-"}</td>
+                <td className="px-6 py-3 space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(item);
+                    }}
+                    className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                    aria-label={`Edit feedback titled ${item.title}`}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleArchive(item);
+                    }}
+                    className={`px-2 py-1 rounded ${
+                      item.archived
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-yellow-400 hover:bg-yellow-500 text-black"
+                    }`}
+                    aria-label={
+                      item.archived
+                        ? `Unarchive feedback titled ${item.title}`
+                        : `Archive feedback titled ${item.title}`
+                    }
+                  >
+                    {item.archived ? "Unarchive" : "Archive"}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(item.id);
+                    }}
+                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                    aria-label={`Delete feedback titled ${item.title}`}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
+      {/* Modal for view feedback */}
       {/* Modal for viewing feedback */}
       {viewFeedback && (
         <Modal onClose={() => setViewFeedback(null)} title={viewFeedback.title}>
